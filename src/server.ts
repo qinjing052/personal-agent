@@ -205,6 +205,15 @@ const server = http.createServer(async (req, res) => {
   sendJson(res, 404, { message: "not found" });
 });
 
+server.on("error", (error: NodeJS.ErrnoException) => {
+  if (error.code === "EADDRINUSE") {
+    console.error(`Port ${port} is already in use. Stop the existing server or start with PORT=xxxx pnpm run server.`);
+    process.exit(1);
+  }
+
+  throw error;
+});
+
 server.listen(port, () => {
   console.log(`Personal Agent server listening on http://localhost:${port}`);
 });
