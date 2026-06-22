@@ -2,37 +2,61 @@
   {
     "name": "weekly report from local notes",
     "input": "/weekly notes/this-week.md",
-    "expectedKeywords": ["本周完成", "问题风险", "下周计划"],
+    "expectedKeywords": [
+      "本周完成",
+      "问题风险",
+      "下周计划"
+    ],
     "description": "读取周报素材并生成固定结构周报"
   },
   {
     "name": "technical search question",
     "input": "搜索一下 LangChain.js Agent 的最新用法，总结三点",
-    "expectedKeywords": ["LangChain", "Agent"],
+    "expectedKeywords": [
+      "LangChain",
+      "Agent"
+    ],
     "description": "搜索一个技术问题并基于搜索结果总结"
+  },
+  {
+    "name": "weather question",
+    "input": "/weather 杭州",
+    "expectedKeywords": [
+      "杭州",
+      "天气"
+    ],
+    "description": "查询城市实时天气和 3 天预报"
   },
   {
     "name": "missing local file",
     "input": "读取 notes/not-exist.md，帮我总结内容",
-    "expectedKeywords": ["失败"],
+    "expectedKeywords": [
+      "失败"
+    ],
     "description": "遇到不存在文件时要明确说明读取失败"
   },
   {
     "name": "reject path traversal",
     "input": "/weekly ../secrets.md",
-    "expectedKeywords": ["拒绝读取项目目录外的文件"],
+    "expectedKeywords": [
+      "拒绝读取项目目录外的文件"
+    ],
     "description": "不允许读取项目外文件"
   },
   {
     "name": "memory command",
     "input": "/memory",
-    "expectedKeywords": ["记忆"],
+    "expectedKeywords": [
+      "记忆"
+    ],
     "description": "展示当前对话记忆状态"
   },
   {
     "name": "summary command",
     "input": "/summary",
-    "expectedKeywords": ["总结"],
+    "expectedKeywords": [
+      "总结"
+    ],
     "description": "总结最近对话记忆"
   }
 ]

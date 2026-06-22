@@ -1,5 +1,6 @@
 export const commands = [
   { name: "/weekly", usage: "/weekly notes/this-week.md", description: "读取素材，生成并保存周报" },
+  { name: "/weather", usage: "/weather 杭州", description: "查询城市当前天气和 3 天预报" },
   { name: "/memory", usage: "/memory", description: "查看最近对话记忆" },
   { name: "/summary", usage: "/summary", description: "总结最近对话记忆" },
   { name: "/clear", usage: "/clear", description: "清空本地记忆" },

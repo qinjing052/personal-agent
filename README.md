@@ -89,6 +89,7 @@ pnpm dev
 
 ```text
 搜索一下 LangChain.js Agent 的最新用法，总结三点
+杭州天气怎么样
 ```
 
 ## Web UI
@@ -121,6 +122,9 @@ Server: http://localhost:5174
 
 ```text
 /weekly notes/this-week.md   # 读取素材，生成并保存周报
+/weather 杭州              # 查询城市当前天气和 3 天预报
+
+天气查询使用 Open-Meteo 的 Geocoding API 和 Forecast API，不需要单独申请 key。
 /memory                      # 查看最近对话记忆
 /summary                     # 让助手总结最近对话，方便恢复上下文
 /clear                       # 清空本地记忆

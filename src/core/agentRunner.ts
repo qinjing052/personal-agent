@@ -9,6 +9,7 @@ import {
   summarizeMemoryItems,
 } from "../memory.js";
 import { searchWeb } from "../tools/webSearch.js";
+import { extractWeatherLocation, getWeather } from "../tools/weather.js";
 import {
   parseWeeklyCommand,
   shouldPreSearch,
@@ -109,6 +110,27 @@ export class PersonalAgentRunner {
         const message = error instanceof Error ? error.message : String(error);
         return `${inputText}\n\n我尝试读取本地文件 ${filePath}，但失败了：${message}`;
       }
+    }
+
+    const weatherLocation = extractWeatherLocation(inputText);
+    if (weatherLocation !== undefined) {
+      if (!weatherLocation) {
+        return [
+          inputText,
+          "",
+          "用户想查询天气，但没有提供城市。请直接询问用户要查哪个城市，并给出示例：/weather 杭州。",
+        ].join("\n");
+      }
+
+      const result = await getWeather(weatherLocation);
+      return [
+        inputText,
+        "",
+        `以下是我已经查询到的 ${weatherLocation} 天气数据，请基于数据回答；如果用户问是否下雨，要重点看 precipitation、rain 和 precipitationProbabilityMax：`,
+        "```json",
+        result,
+        "```",
+      ].join("\n");
     }
 
     if (shouldPreSearch(inputText)) {

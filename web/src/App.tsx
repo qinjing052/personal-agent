@@ -9,6 +9,7 @@ type StartResponse = {
 
 const quickPrompts = [
   "/weekly notes/this-week.md",
+  "/weather 杭州",
   "搜索一下 LangChain.js Agent 的最新用法，总结三点",
   "/memory",
   "/summary",

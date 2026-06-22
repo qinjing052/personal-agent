@@ -5,6 +5,7 @@ import { createPersonalAgent } from "../agent.js";
 import { assertConfig } from "../config.js";
 import { configureNetwork } from "../network.js";
 import { searchWeb } from "../tools/webSearch.js";
+import { extractWeatherLocation, getWeather } from "../tools/weather.js";
 import cases from "../../eval-cases.json" with { type: "json" };
 
 assertConfig();
@@ -104,6 +105,27 @@ async function prepareEvalInput(input: string) {
   if (input.includes("notes/not-exist.md")) {
     return {
       localResponse: "读取文件失败：notes/not-exist.md 不存在。",
+    };
+  }
+
+  const weatherLocation = extractWeatherLocation(input);
+  if (weatherLocation !== undefined) {
+    if (!weatherLocation) {
+      return {
+        localResponse: "查询天气失败：缺少城市名。",
+      };
+    }
+
+    const result = await getWeather(weatherLocation);
+    return {
+      prompt: [
+        input,
+        "",
+        `以下是我已经查询到的 ${weatherLocation} 天气数据，请基于数据回答：`,
+        "```json",
+        result,
+        "```",
+      ].join("\n"),
     };
   }
 

@@ -5,6 +5,7 @@ import { config } from "./config.js";
 import { systemPrompt } from "./systemPrompt.js";
 import { readLocalFile } from "./tools/readLocalFile.js";
 import { webSearch } from "./tools/webSearch.js";
+import { weatherSearch } from "./tools/weather.js";
 
 /**
  * 创建个人助手 Agent。
@@ -25,7 +26,7 @@ export function createPersonalAgent() {
 
   return createReactAgent({
     llm: model,
-    tools: [readLocalFile, webSearch],
+    tools: [readLocalFile, webSearch, weatherSearch],
     messageModifier: systemPrompt,
   });
 }
