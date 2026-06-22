@@ -1,63 +1,137 @@
 # Personal Agent TS
 
-A tiny TypeScript + LangChain.js personal assistant for learning the full Agent loop:
+一个用于学习 Agent 全流程的 TypeScript + LangChain.js 个人助手项目。
 
-- system prompt
-- tool calling
-- streamed CLI output
-- local conversation memory
-- simple evaluation cases
+它目前支持：
 
-## Setup
+- 读取项目内本地文件，例如 `notes/this-week.md`
+- 使用 Tavily 搜索网页
+- 流式输出模型回答
+- 保存最近对话记忆
+- 诊断 OpenAI 连接、代理和模型可用性
+- 跑一组简单评估用例
+
+## 项目结构
+
+```text
+src/
+  index.ts                 # CLI 主入口，负责用户输入、预处理、流式输出和记忆保存
+  agent.ts                 # 创建 LangGraph ReAct Agent，绑定模型、系统提示词和工具
+  config.ts                # 读取 .env 配置，并做基础安全校验
+  network.ts               # 配置终端代理，让 Node/OpenAI SDK 可以走本地代理
+  systemPrompt.ts          # Agent 的系统提示词
+  memory.ts                # 将最近对话保存到本地 JSON 文件
+  doctor.ts                # OpenAI 连接诊断脚本
+  tools/
+    readLocalFile.ts       # 本地文件读取工具
+    webSearch.ts           # Tavily 网页搜索工具
+  evals/
+    run.ts                 # 简单评估脚本
+notes/
+  this-week.md             # 示例周报素材
+```
+
+## 安装
 
 ```bash
 pnpm install
 cp .env.example .env
+```
+
+然后编辑 `.env`：
+
+```bash
+OPENAI_API_KEY=你的 OpenAI Key
+OPENAI_MODEL=gpt-5.4-mini
+OPENAI_BASE_URL=https://你的网关/v1
+ALLOW_CUSTOM_OPENAI_BASE_URL=true
+HTTPS_PROXY=http://127.0.0.1:8118
+TAVILY_API_KEY=你的 Tavily Key
+```
+
+说明：
+
+- `OPENAI_API_KEY` 是模型调用用的 key。
+- `TAVILY_API_KEY` 是 Tavily 搜索用的 key，通常以 `tvly-` 开头，不要填 OpenAI key。
+- `OPENAI_BASE_URL` 如果使用第三方 OpenAI 兼容网关，通常要以 `/v1` 结尾。
+- `ALLOW_CUSTOM_OPENAI_BASE_URL=true` 表示你确认信任这个第三方网关，可以把 API key 发给它。
+- `HTTPS_PROXY` 只影响 Node 程序里的网络请求；Git 推送代理需要另外用 `git config` 设置。
+
+## 启动
+
+```bash
 pnpm dev
 ```
 
-Fill in `OPENAI_API_KEY` in `.env` before running.
-
-`TAVILY_API_KEY` is optional. Without it, the `web_search` tool stays available but returns setup guidance.
-
-## Try It
+可以先试本地文件读取：
 
 ```text
-读取 notes/this-week.md，帮我写一份周报
+读取 notes/this-week.md，帮我写一份专业但简洁的周报
 ```
+
+再试网页搜索：
 
 ```text
-搜索 LangChain.js agent 的最新用法，并结合这个项目说说下一步怎么升级
+搜索一下 LangChain.js Agent 的最新用法，总结三点
 ```
 
-## Evaluate
+## 诊断 OpenAI 连接
 
-```bash
-pnpm eval
+如果 CLI 一直停在：
+
+```text
+[状态] 正在请求模型...
 ```
 
-The eval script runs a few fixed prompts and prints rough pass/fail checks. It is intentionally simple so you can edit it as your Agent grows.
-
-## Diagnose Connection Issues
-
-If the CLI stays at `[状态] 正在请求模型...`, run:
+运行：
 
 ```bash
 pnpm check:openai
 ```
 
-If it reports a connection timeout, configure your network proxy in the shell before running `pnpm dev`, or set `OPENAI_BASE_URL` to an OpenAI-compatible gateway.
+这个命令会检查：
 
-For example, if your local proxy listens on port `7890`, add this to `.env`:
+- API key 是否存在
+- 当前模型是否在 `/v1/models` 里
+- `OPENAI_BASE_URL` 是否返回 JSON
+- 代理是否配置
+- 是否误把 key 发往未确认信任的第三方域名
+
+## 运行评估
 
 ```bash
-HTTPS_PROXY=http://127.0.0.1:7890
+pnpm eval
 ```
 
-If you use a third-party OpenAI-compatible gateway, its base URL usually needs to end with `/v1`.
-Only enable it if you trust that gateway with your API key:
+评估脚本会跑几条固定问题，并检查回答里是否包含预期关键词。它不是严格评分系统，更像一个“改 prompt / 改工具后别退化太离谱”的烟雾测试。
+
+## 关键设计
+
+这个项目保留了两层能力：
+
+- LangChain 工具调用：模型可以主动调用 `read_local_file` 和 `web_search`。
+- CLI 预处理兜底：当用户明确提到本地文件或搜索意图时，程序先读取/搜索，再把结果交给模型。
+
+这样做是因为一些第三方 OpenAI 兼容网关对 tool calling 支持不完整。确定性动作由程序兜底，模型专注理解、总结和写作，入门阶段会更稳定。
+
+## 常见问题
+
+### 为什么浏览器能打开 OpenAI，但 CLI 连接超时？
+
+浏览器可能走了代理插件或系统分流，而终端里的 Node 进程没有走代理。请在 `.env` 中配置：
 
 ```bash
-OPENAI_BASE_URL=https://your-gateway.example.com/v1
-ALLOW_CUSTOM_OPENAI_BASE_URL=true
+HTTPS_PROXY=http://127.0.0.1:8118
 ```
+
+端口需要换成你本地代理实际监听的 HTTP/Mixed 端口。
+
+### 为什么搜索失败？
+
+先确认 `.env` 里的 `TAVILY_API_KEY` 是 Tavily 的 key，而不是 OpenAI key。
+
+Tavily key 需要在 [Tavily 控制台](https://app.tavily.com) 单独申请。
+
+### 为什么使用第三方网关要设置 `ALLOW_CUSTOM_OPENAI_BASE_URL=true`？
+
+因为只要设置了自定义 `OPENAI_BASE_URL`，程序就会把 `OPENAI_API_KEY` 发给那个域名。这个开关是一个安全确认，避免误把 key 发到不可信地址。

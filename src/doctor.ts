@@ -4,6 +4,11 @@ import { configureNetwork } from "./network.js";
 
 configureNetwork();
 
+/**
+ * OpenAI 连接诊断脚本。
+ *
+ * 用于定位 API key、模型名、代理、Base URL 和第三方网关返回格式问题。
+ */
 const baseUrl = config.openAiBaseUrl ?? "https://api.openai.com/v1";
 const modelsUrl = `${baseUrl.replace(/\/$/, "")}/models`;
 
@@ -15,6 +20,9 @@ function mask(value: string | undefined) {
   return `${value.slice(0, 7)}...${value.slice(-4)}`;
 }
 
+/**
+ * 返回非 JSON 时，只展示短预览，避免终端被 HTML 错误页刷屏。
+ */
 function preview(text: string) {
   return text
     .replace(/\s+/g, " ")

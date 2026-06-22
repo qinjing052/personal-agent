@@ -5,6 +5,11 @@ import { z } from "zod";
 
 const workspaceRoot = process.cwd();
 
+/**
+ * LangChain 工具：读取项目目录内的本地文本文件。
+ *
+ * 关键点是用 `path.relative` 做目录边界检查，防止通过 `../` 读取项目外文件。
+ */
 export const readLocalFile = tool(
   async ({ filePath }) => {
     const fullPath = path.resolve(workspaceRoot, filePath);

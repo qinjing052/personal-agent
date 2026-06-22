@@ -10,6 +10,11 @@ const tavilySearch = config.tavilyApiKey && config.tavilyApiKey !== "replace_me"
     })
   : null;
 
+/**
+ * 直接执行网页搜索。
+ *
+ * 这个函数既被 LangChain 工具包装使用，也被 CLI 预搜索兜底直接调用。
+ */
 export async function searchWeb(query: string) {
   if (!tavilySearch) {
     return "web_search 尚未配置。请在 .env 中设置 TAVILY_API_KEY，或先跳过网页搜索能力。";
@@ -22,6 +27,9 @@ export async function searchWeb(query: string) {
   return await tavilySearch.invoke(query);
 }
 
+/**
+ * LangChain 工具：把 Tavily 搜索暴露给模型。
+ */
 export const webSearch = tool(
   async ({ query }) => {
     return await searchWeb(query);

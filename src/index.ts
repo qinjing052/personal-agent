@@ -9,6 +9,12 @@ import { loadMemory, saveMemory } from "./memory.js";
 import { configureNetwork } from "./network.js";
 import { searchWeb } from "./tools/webSearch.js";
 
+/**
+ * CLI 主入口。
+ *
+ * 负责读取用户输入、做确定性的本地文件/搜索预处理、调用 Agent 流式输出，
+ * 最后把对话写入本地记忆文件。
+ */
 assertConfig();
 configureNetwork();
 
@@ -18,6 +24,10 @@ const messages = await loadMemory(config.memoryFile);
 
 console.log("Personal Agent TS 已启动。输入 exit 退出，输入 clear 清空本地记忆。");
 
+/**
+ * LangChain/OpenAI 的流式 chunk 可能是字符串，也可能是结构化 content block。
+ * CLI 只关心能展示给用户的文本，所以这里统一抽取为 string。
+ */
 function extractText(content: unknown): string {
   if (typeof content === "string") {
     return content;
@@ -48,6 +58,9 @@ function extractText(content: unknown): string {
     .join("");
 }
 
+/**
+ * 工具入参可能很长，终端状态只展示摘要，避免刷屏。
+ */
 function summarizeToolInput(inputValue: unknown): string {
   if (!inputValue) {
     return "";
@@ -60,11 +73,20 @@ function summarizeToolInput(inputValue: unknown): string {
   return text.length > 120 ? `${text.slice(0, 117)}...` : text;
 }
 
+/**
+ * 从用户输入中识别项目内的常见资料路径。
+ */
 function extractLocalFilePath(inputText: string): string | undefined {
   const match = inputText.match(/(?:^|[\s`"“”'，,：:])((?:notes|docs|data)\/[^\s`"“”'，,。；;]+?\.(?:md|txt|json|csv))/);
   return match?.[1];
 }
 
+/**
+ * 本地文件读取兜底。
+ *
+ * 一些 OpenAI 兼容网关对 tool calling 支持不稳定，所以当用户明确提到文件路径时，
+ * CLI 先确定性读取文件，再把文件内容作为上下文交给模型。
+ */
 async function readMentionedLocalFile(inputText: string): Promise<string | undefined> {
   const filePath = extractLocalFilePath(inputText);
 
@@ -97,10 +119,16 @@ async function readMentionedLocalFile(inputText: string): Promise<string | undef
   }
 }
 
+/**
+ * 判断用户是否表达了搜索意图。
+ */
 function shouldPreSearch(inputText: string) {
   return /搜索|搜一下|查一下|查询|最新|recent|latest|search/i.test(inputText);
 }
 
+/**
+ * 把自然语言里的命令词去掉，得到更适合作为搜索 query 的文本。
+ */
 function stripSearchWords(inputText: string) {
   return inputText
     .replace(/^(请|帮我|麻烦)?(搜索一下|搜索|搜一下|查一下|查询)\s*/i, "")
@@ -108,6 +136,11 @@ function stripSearchWords(inputText: string) {
     .trim();
 }
 
+/**
+ * 网页搜索兜底。
+ *
+ * 与本地文件类似，搜索这种确定性动作先由程序执行，再让模型基于搜索结果总结。
+ */
 async function searchMentionedTopic(inputText: string): Promise<string | undefined> {
   if (!shouldPreSearch(inputText)) {
     return undefined;
@@ -173,6 +206,10 @@ while (true) {
   }, 5000);
 
   try {
+    /**
+     * streamEvents 能同时拿到模型 token、工具开始/结束等事件。
+     * 这样终端不会在工具调用或网络等待时像“卡死”一样没有反馈。
+     */
     const stream = await agent.streamEvents(
       { messages },
       { version: "v2" },

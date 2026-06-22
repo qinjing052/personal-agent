@@ -4,6 +4,12 @@ import { assertConfig } from "../config.js";
 
 assertConfig();
 
+/**
+ * 一个极简评估脚本。
+ *
+ * 它不追求严谨打分，只用固定问题和关键词检查，帮助我们在改 prompt、
+ * 改工具或换模型后快速发现明显退化。
+ */
 type EvalCase = {
   name: string;
   input: string;
