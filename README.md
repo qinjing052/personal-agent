@@ -17,6 +17,7 @@
 ```text
 src/
   index.ts                 # CLI 主入口，负责用户输入、预处理、流式输出和记忆保存
+  server.ts                # Web UI 使用的本地 HTTP/SSE 服务
   agent.ts                 # 创建 LangGraph ReAct Agent，绑定模型、系统提示词和工具
   config.ts                # 读取 .env 配置，并做基础安全校验
   network.ts               # 配置终端代理，让 Node/OpenAI SDK 可以走本地代理
@@ -33,6 +34,9 @@ notes/
 outputs/
   .gitkeep                 # 保留输出目录，实际生成的周报文件不会提交到 Git
 eval-cases.json            # 评估用例列表
+web/
+  main.tsx                 # Vite React 入口
+  src/App.tsx              # Web 版聊天工作台
 ```
 
 ## 安装
@@ -87,7 +91,33 @@ pnpm dev
 搜索一下 LangChain.js Agent 的最新用法，总结三点
 ```
 
+## Web UI
+
+Web 版使用 Vite + React，并接入 `@apollo/AIChat` 聊天组件。私服依赖通过 `.npmrc` 配置：
+
+```text
+@apollo:registry=http://gd-npm.dc.servyou-it.com
+@gd:registry=http://gd-npm.dc.servyou-it.com
+```
+
+启动 Web UI：
+
+```bash
+pnpm dev:web
+```
+
+默认端口：
+
+```text
+Web:    http://localhost:5173
+Server: http://localhost:5174
+```
+
+前端只负责展示和发送用户输入，模型、搜索、文件读取都由本地 `src/server.ts` 处理，避免在浏览器暴露 API key。
+
 ## 常用命令
+
+在 CLI 中输入 `/` 可以查看支持的命令，输入命令前缀后按 `Tab` 可以补全。
 
 ```text
 /weekly notes/this-week.md   # 读取素材，生成并保存周报

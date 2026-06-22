@@ -6,23 +6,36 @@
   "packageManager": "pnpm@9.15.9",
   "scripts": {
     "dev": "tsx src/index.ts",
+    "server": "tsx src/server.ts",
+    "web": "vite --host 0.0.0.0",
+    "dev:web": "concurrently -k \"pnpm run server\" \"pnpm run web\"",
     "eval": "tsx src/evals/run.ts",
     "check:openai": "tsx src/doctor.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.web.json"
   },
   "dependencies": {
+    "@apollo/AIChat": "^0.3.88",
+    "@gd/central-useEventEmitter": "^1.0.8",
     "@langchain/community": "^0.3.55",
     "@langchain/core": "^0.3.70",
     "@langchain/langgraph": "^0.3.7",
     "@langchain/openai": "^0.6.9",
+    "antd": "^4.24.16",
     "dotenv": "^16.4.7",
     "langchain": "^0.3.30",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "undici": "^6.27.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^22.13.14",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^6.0.2",
+    "concurrently": "^10.0.3",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vite": "^8.0.16"
   }
 }
