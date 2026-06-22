@@ -6,6 +6,7 @@
 
 - 读取项目内本地文件，例如 `notes/this-week.md`
 - 使用 Tavily 搜索网页
+- `/weekly` 命令自动生成并保存周报
 - 流式输出模型回答
 - 保存最近对话记忆
 - 诊断 OpenAI 连接、代理和模型可用性
@@ -29,6 +30,9 @@ src/
     run.ts                 # 简单评估脚本
 notes/
   this-week.md             # 示例周报素材
+outputs/
+  .gitkeep                 # 保留输出目录，实际生成的周报文件不会提交到 Git
+eval-cases.json            # 评估用例列表
 ```
 
 ## 安装
@@ -69,10 +73,28 @@ pnpm dev
 读取 notes/this-week.md，帮我写一份专业但简洁的周报
 ```
 
+也可以直接使用周报命令：
+
+```text
+/weekly notes/this-week.md
+```
+
+它会自动读取素材、生成周报，并保存到 `outputs/weekly-日期.md`。
+
 再试网页搜索：
 
 ```text
 搜索一下 LangChain.js Agent 的最新用法，总结三点
+```
+
+## 常用命令
+
+```text
+/weekly notes/this-week.md   # 读取素材，生成并保存周报
+/memory                      # 查看最近对话记忆
+/summary                     # 让助手总结最近对话，方便恢复上下文
+/clear                       # 清空本地记忆
+exit                         # 退出 CLI
 ```
 
 ## 诊断 OpenAI 连接
@@ -103,7 +125,15 @@ pnpm check:openai
 pnpm eval
 ```
 
-评估脚本会跑几条固定问题，并检查回答里是否包含预期关键词。它不是严格评分系统，更像一个“改 prompt / 改工具后别退化太离谱”的烟雾测试。
+评估脚本会读取 `eval-cases.json`，跑固定问题并检查回答里是否包含预期关键词。它不是严格评分系统，更像一个“改 prompt / 改工具后别退化太离谱”的烟雾测试。
+
+当前评估覆盖：
+
+- 读取周报文件并生成周报
+- 搜索一个技术问题
+- 遇到不存在文件时如何回答
+- 不允许读取项目外文件
+- `/memory` 和 `/summary` 命令是否可用
 
 ## 关键设计
 

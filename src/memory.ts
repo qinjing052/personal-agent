@@ -10,6 +10,12 @@ type StoredMessage = {
   content: string;
 };
 
+export type MemorySummaryItem = {
+  index: number;
+  role: "user" | "assistant";
+  preview: string;
+};
+
 /**
  * 从本地 JSON 文件恢复最近对话。
  *
@@ -43,4 +49,61 @@ export async function saveMemory(filePath: string, messages: BaseMessage[]) {
     .slice(-20);
 
   await fs.writeFile(filePath, `${JSON.stringify(stored, null, 2)}\n`, "utf-8");
+}
+
+function toStoredRole(message: BaseMessage): StoredMessage["role"] | undefined {
+  if (message._getType() === "human") {
+    return "user";
+  }
+
+  if (message._getType() === "ai") {
+    return "assistant";
+  }
+
+  return undefined;
+}
+
+function compactContent(content: unknown) {
+  return String(content)
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * 生成给 `/memory` 展示用的短列表。
+ */
+export function summarizeMemoryItems(messages: BaseMessage[]): MemorySummaryItem[] {
+  return messages
+    .map((message, index) => {
+      const role = toStoredRole(message);
+
+      if (!role) {
+        return undefined;
+      }
+
+      const content = compactContent(message.content);
+      const preview = content.length > 100 ? `${content.slice(0, 97)}...` : content;
+
+      return {
+        index: index + 1,
+        role,
+        preview,
+      };
+    })
+    .filter((item): item is MemorySummaryItem => Boolean(item));
+}
+
+/**
+ * 将记忆整理成给模型总结用的文本。
+ */
+export function formatMemoryForSummary(messages: BaseMessage[]) {
+  const items = summarizeMemoryItems(messages);
+
+  if (items.length === 0) {
+    return "";
+  }
+
+  return items
+    .map((item) => `${item.index}. ${item.role === "user" ? "用户" : "助手"}：${item.preview}`)
+    .join("\n");
 }
