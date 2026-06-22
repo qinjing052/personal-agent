@@ -13,14 +13,6 @@ type CommandItem = {
   description: string;
 };
 
-const quickPrompts = [
-  "/weekly notes/this-week.md",
-  "/weather 杭州",
-  "搜索一下 LangChain.js Agent 的最新用法，总结三点",
-  "/memory",
-  "/summary",
-];
-
 const commandItems: CommandItem[] = [
   {
     label: "生成周报",
@@ -96,25 +88,10 @@ export default function App() {
   const noQuestion = useMemo(
     () => (
       <section className="welcome-panel">
-        <p className="eyebrow">Personal Agent</p>
-        <h1>一个能读文件、查天气、搜网页、写周报的个人助手。</h1>
-        <p className="welcome-copy">
-          左侧是常用能力入口，右侧保留 ApolloAIChat 对话体验；所有模型请求仍由本地 Node 服务代理，API Key 不进入浏览器。
-        </p>
-        <div className="quick-grid">
-          {quickPrompts.map((prompt) => (
-            <button
-              key={prompt}
-              type="button"
-              onClick={() => sendPrompt(prompt)}
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
+        <h1>Personal Agent</h1>
       </section>
     ),
-    [sendPrompt],
+    [],
   );
 
   return (
