@@ -37,5 +37,10 @@
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "vite": "^8.0.16"
+  },
+  "pnpm": {
+    "overrides": {
+      "@gd/central-useEventEmitter>react": "18.3.1"
+    }
   }
 }
