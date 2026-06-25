@@ -228,10 +228,13 @@ export default function App() {
     };
   }, [ensureHistorySession]);
 
-  const sendPrompt = useCallback((prompt: string) => {
-    chatRef.current?.set?.({ prompt });
-    chatRef.current?.send?.();
-  }, []);
+  const sendCommandPrompt = useCallback((prompt: string) => {
+    ensureHistorySession(prompt);
+    chatRef.current?.set?.({ prompt, showPrompt: true });
+    requestAnimationFrame(() => {
+      chatRef.current?.send?.();
+    });
+  }, [ensureHistorySession]);
 
   const handleNewSession = useCallback(() => {
     activeHistoryIdRef.current = undefined;
@@ -324,7 +327,7 @@ export default function App() {
                 key={item.label}
                 type="button"
                 className="nav-item"
-                onClick={() => sendPrompt(item.prompt)}
+                onClick={() => sendCommandPrompt(item.prompt)}
               >
                 <span className="nav-item-main">{item.label}</span>
                 <span className="nav-item-desc">{item.description}</span>
